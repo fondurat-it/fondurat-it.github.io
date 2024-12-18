@@ -60,7 +60,7 @@ plugins:
 author:
   name   : "Edurd Fondurat"
   avatar : "/assets/images/rudenko.jpg"
-  bio    : "My awesome biography constrained to a sentence or two goes here."
+  bio    : "Мастер на все руки от скуки."
   links:
     - label: "Website"
       icon: "fas fa-fw fa-link"
