@@ -58,15 +58,15 @@ plugins:
   - jekyll-include-cache
 
 author:
-  name   : "Edurd Fondurat"
+  name   : "Eduard Fondurat"
   avatar : "/assets/images/rudenko.jpg"
   bio    : "Мастер на все руки от скуки."
   links:
     - label: "Website"
       icon: "fas fa-fw fa-link"
-      url: "https:/e-shop.biz.ua/turagent"
+      url: "https://e-schop.biz.ua/kickstart/"
    - label: "linkedin"
-      icon: "fab fa-fw fa-linkedin"
+      icon: "fa-brands fa-linkedin"
       url: "https://linkedin.com/"
 #  - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
@@ -80,13 +80,13 @@ author:
 
 footer:
   links:
-    - label: "Twitter"
+   # - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
       url: "https://twitter.com/"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
       url: "https://github.com/"
-    - label: "Instagram"
+  #  - label: "Instagram"
       icon: "fab fa-fw fa-instagram"
       url: "https://instagram.com/"
 
