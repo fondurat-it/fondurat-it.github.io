@@ -25,6 +25,7 @@ When using Kramdown `{: .notice}` can be added after a sentence to assign the `.
 root@node01:~# mkdir /drbd_disk
 
 root@node01:~# mount /dev/drbd0 /drbd_disk. [Integer nec odio](#).
+{: .notice--success}
 
 **Danger Notice:** Lorem ipsum dolor sit amet, [consectetur adipiscing](#) elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
 {: .notice--danger}
