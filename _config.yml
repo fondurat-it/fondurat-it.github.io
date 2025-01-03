@@ -81,7 +81,7 @@ author:
 
 footer:
   links:
-     - label: "Website"
+    - label: "Website"
       icon: "fas fa-fw fa-link"
       url: "https://e-schop.biz.ua/kickstart/"
    # - label: "Twitter"
