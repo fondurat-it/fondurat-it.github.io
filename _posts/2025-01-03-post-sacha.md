@@ -20,12 +20,15 @@ When using Kramdown `{: .notice}` can be added after a sentence to assign the `.
 **Info Notice:** Lorem ipsum dolor sit amet, [consectetur adipiscing elit](#). Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
 {: .notice--info}
 
-**Обратите внимание:** root@node01:~# mkfs.xfs /dev/drbd0
+**Warning Notice:** Всегда. [Integer nec odio](#). С нами.
+{: .notice--warning}
+
+**Обратите внимание:** Этот код будет реализовываться <p> root@node01:~# mkfs.xfs /dev/drbd0 </p>
 
 root@node01:~# mkdir /drbd_disk
 
 root@node01:~# mount /dev/drbd0 /drbd_disk. [Integer nec odio](#).
-{: .notice--success}
+{: .notice--warning}
 
 **Danger Notice:** Lorem ipsum dolor sit amet, [consectetur adipiscing](#) elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
 {: .notice--danger}
@@ -34,7 +37,8 @@ root@node01:~# mount /dev/drbd0 /drbd_disk. [Integer nec odio](#).
 {: .notice--success}
 
 # 1.	Побудова спільного сховища кластера з двома вузлами на основі DRBD з мережею на основі RDMA. Proxmox, Debian, DRBD, RDMA. Увімкнути rdma для drbd. Жива міграція.  
-  ## 4.1. Початок.  
+   4.1. Початок.
+   -------------
   В зв'язку з здешевленням мережевих карт (пару двоxпортових я придбав з парою мідних кабелів за 100$ з доставкою) з'явилося бажання побудувати кластер з двох вузлів з двома точками відмови, з'єднаних напряму трьома дротовими мережами і однією WiFi, маючими по одному nvme диску для спільного сховища. Це повинен  був бути варіант кластера для дому, чи то для невеликої фірми. Вибір впав на drbd сховище з rdma.  
 
   ## 4.2. Реалізація.    
