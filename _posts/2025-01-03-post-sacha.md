@@ -23,11 +23,7 @@ When using Kramdown `{: .notice}` can be added after a sentence to assign the `.
 **Warning Notice:** Всегда. [Integer nec odio](#). С нами.
 {: .notice--warning}
 
-**Обратите внимание:** Этот код будет реализовываться <p> root@node01:~# mkfs.xfs /dev/drbd0 </p>
-
-root@node01:~# mkdir /drbd_disk
-
-root@node01:~# mount /dev/drbd0 /drbd_disk. [Integer nec odio](#).
+**Обратите внимание:** Этот код будет реализовываться <p> root@node01:~# mkfs.xfs /dev/drbd0 </p> root@node01:~# mkdir /drbd_disk root@node01:~# mount /dev/drbd0 /drbd_disk.
 {: .notice--warning}
 
 **Danger Notice:** Lorem ipsum dolor sit amet, [consectetur adipiscing](#) elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
@@ -40,9 +36,20 @@ root@node01:~# mount /dev/drbd0 /drbd_disk. [Integer nec odio](#).
    4.1. Початок.
    -------------
   В зв'язку з здешевленням мережевих карт (пару двоxпортових я придбав з парою мідних кабелів за 100$ з доставкою) з'явилося бажання побудувати кластер з двох вузлів з двома точками відмови, з'єднаних напряму трьома дротовими мережами і однією WiFi, маючими по одному nvme диску для спільного сховища. Це повинен  був бути варіант кластера для дому, чи то для невеликої фірми. Вибір впав на drbd сховище з rdma.  
+---
+Заголовок, который подчеркнули одним символом
+-
 
-  ## 4.2. Реалізація.    
-   ### 4.2.1. Залізо. Система. Конфігурація.  
+Заголовок второго
+уровня из нескольких
+строчек текста
+------------------
+---
+
+   4.2. Реалізація.
+  =================
+    4.2.1. Залізо. Система. Конфігурація.
+    --------------------
     Два вузли з встановленим Proxmox 8.3.2:  
     
 ```html
