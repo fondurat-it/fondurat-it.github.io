@@ -32,6 +32,12 @@ When using Kramdown `{: .notice}` can be added after a sentence to assign the `.
 Want to wrap several paragraphs or other elements in a notice? Using Liquid to capture the content and then filter it with `markdownify` is a good way to go.
 
 ```html
+root@pve1:~# pveversion 
+pve-manager/8.3.2/3e76eec21c4a14a7 (running kernel: 6.8.12-5-pve)
+[root@pve99 ~]$ pveversion
+pve-manager/8.3.2/3e76eec21c4a14a7 (running kernel: 6.8.12-5-pve)
+
+
 {% raw %}{% capture notice-2 %}
 #### New Site Features
 
