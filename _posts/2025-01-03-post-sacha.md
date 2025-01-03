@@ -20,8 +20,11 @@ When using Kramdown `{: .notice}` can be added after a sentence to assign the `.
 **Info Notice:** Lorem ipsum dolor sit amet, [consectetur adipiscing elit](#). Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
 {: .notice--info}
 
-**Warning Notice:** Lorem ipsum dolor sit amet, consectetur adipiscing elit. [Integer nec odio](#). Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
-{: .notice--warning}
+**Обратите внимание:** root@node01:~# mkfs.xfs /dev/drbd0
+
+root@node01:~# mkdir /drbd_disk
+
+root@node01:~# mount /dev/drbd0 /drbd_disk. [Integer nec odio](#).
 
 **Danger Notice:** Lorem ipsum dolor sit amet, [consectetur adipiscing](#) elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
 {: .notice--danger}
@@ -30,11 +33,13 @@ When using Kramdown `{: .notice}` can be added after a sentence to assign the `.
 {: .notice--success}
 
 # 1.	Побудова спільного сховища кластера з двома вузлами на основі DRBD з мережею на основі RDMA. Proxmox, Debian, DRBD, RDMA. Увімкнути rdma для drbd. Жива міграція.  
-  ## 4.1. Початок. В зв'язку з здешевленням мережевих карт (пару двоxпортових я придбав з парою мідних кабелів за 100$ з доставкою) з'явилося бажання побудувати кластер з двох вузлів з двома точками відмови, з'єднаних напряму трьома дротовими мережами і однією WiFi, маючими по одному nvme диску для спільного сховища. Це повинен  був бути варіант кластера для дому, чи то для невеликої фірми. Вибір впав на drbd сховище з rdma.  
+  ## 4.1. Початок.  
+  В зв'язку з здешевленням мережевих карт (пару двоxпортових я придбав з парою мідних кабелів за 100$ з доставкою) з'явилося бажання побудувати кластер з двох вузлів з двома точками відмови, з'єднаних напряму трьома дротовими мережами і однією WiFi, маючими по одному nvme диску для спільного сховища. Це повинен  був бути варіант кластера для дому, чи то для невеликої фірми. Вибір впав на drbd сховище з rdma.  
 
-  ## 4.2. Реалізація.  
+  ## 4.2. Реалізація.    
    ### 4.2.1. Залізо. Система. Конфігурація.  
-    Два вузли з встановленим Proxmox 8.3.2:
+    Два вузли з встановленим Proxmox 8.3.2:  
+    
 ```html
 root@pve1:~# pveversion 
 pve-manager/8.3.2/3e76eec21c4a14a7 (running kernel: 6.8.12-5-pve)
