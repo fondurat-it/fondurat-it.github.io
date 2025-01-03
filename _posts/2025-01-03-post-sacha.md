@@ -40,6 +40,35 @@ root@pve1:~# pveversion
 pve-manager/8.3.2/3e76eec21c4a14a7 (running kernel: 6.8.12-5-pve)
 [root@pve99 ~]$ pveversion
 pve-manager/8.3.2/3e76eec21c4a14a7 (running kernel: 6.8.12-5-pve)
+*****************************************************************
+root@node01:~# mkfs.xfs /dev/drbd0
+
+root@node01:~# mkdir /drbd_disk
+
+root@node01:~# mount /dev/drbd0 /drbd_disk
+
+root@node01:~# df -hT
+
+Filesystem                  Type      Size  Used Avail Use% Mounted on
+udev                        devtmpfs  1.9G     0  1.9G   0% /dev
+tmpfs                       tmpfs     392M  564K  391M   1% /run
+/dev/mapper/debian--vg-root ext4       28G  1.3G   26G   5% /
+tmpfs                       tmpfs     2.0G     0  2.0G   0% /dev/shm
+tmpfs                       tmpfs     5.0M     0  5.0M   0% /run/lock
+/dev/vda1                   ext2      455M   58M  373M  14% /boot
+tmpfs                       tmpfs     392M     0  392M   0% /run/user/0
+/dev/drbd0                  ext4       79G   24K   75G   1% /drbd_disk
+
+# create a test file
+
+root@node01:~# echo 'test file' > /drbd_disk/test.txt
+
+root@node01:~# ll /drbd_disk
+
+total 20
+drwx------ 2 root root 16384 Aug 28 19:53 lost+found
+-rw-r--r-- 1 root root    10 Aug 28 19:55 test.txt
+
 ```
 
    з двупортовими картами Mellanox Technologies ConnectX-3 Pro Stand-up dual-port 40GbE MCX314A-BCCT зв’язані напряму мідним кабелем. 
