@@ -7,7 +7,9 @@ author_profile: true
 ---
 # Здесь будет список и порядок статей по проекту
 
-1. Первая стаья по теме и [инструкция](https://fondurat-it.github.io/blog/post-sacha/). Смотреть ![/assets/images/youtube.jpg](https:/youtube.com)
-2. Вторая статья
-3. Третья статья
-4. 
+1. Первая стаья по теме и [инструкция](https://fondurat-it.github.io/blog/post-sacha/). Смотреть <a href="https://youtube.com">
+  <img src="assets/images/youtube.jpg" width="40" height="25" width="60" alt="Смотреть"></a>
+  
+3. Вторая статья
+4. Третья статья
+5. 
