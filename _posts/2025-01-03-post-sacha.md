@@ -16,10 +16,10 @@ Proxmox, Debian, DRBD, RDMA.
 **Начинаем:** Начнем наше продвижение!
 {: .notice--success}
 
- ##  4.2. Реалізація.
-     4.2.1. Залізо. Система. Конфігурація.
+## 4.2. Реалізація.
+### 4.2.1. Залізо. Система. Конфігурація.
   
-       Два вузли з встановленим Proxmox 8.3.2:
+  **Два вузли з встановленим Proxmox 8.3.2:**
     
 ```
 root@pve1:~# pveversion 
@@ -29,11 +29,11 @@ pve-manager/8.3.2/3e76eec21c4a14a7 (running kernel: 6.8.12-5-pve)
 
 ```
 
-    з двупортовими картами Mellanox Technologies ConnectX-3 Pro Stand-up dual-port 40GbE MCX314A-BCCT зв’язані напряму мідним кабелем.
+з двупортовими картами Mellanox Technologies ConnectX-3 Pro Stand-up dual-port 40GbE MCX314A-BCCT зв’язані напряму мідним кабелем.
     
   **Вузол pve1 : 10.10.1.1**
 
-  Частина виводу команди  
+  Частина виводу команди:  
 
 ```
 lspci -vvv  
@@ -44,6 +44,67 @@ Subsystem: Mellanox Technologies Mellanox Technologies ConnectX-3 Pro Stand-up d
 Kernel driver in use: mlx4_core
 Kernel modules: mlx4_core
 ```
+**Вузол pve99 : 10.10.1.2**  
+
+Частина виводу команди:  
+```
+lspci -vvv
+01:00.0 Ethernet controller: Mellanox Technologies MT27520 Family [ConnectX-3 Pro]
+Subsystem: Mellanox Technologies Mellanox Technologies ConnectX-3 Pro Stand-up dual-port 40GbE MCX314A-BCCT 
+```
+```
+Kernel driver in use: mlx4_core
+Kernel modules: mlx4_core
+```
+### 4.2.2. Перевірка працездатності. (Встановлення драйверів і налаштування, розглянуто окремо за посиланням:  
+
+**Встановимо пакет з *rping*  на обох вузлах:**  
+```
+apt install rdmacm-utils
+```
+**На сервері:**  
+
+**Вузол 1: pve1 (10.10.1.1):**  
+```
+root@pve1:~# rping -s -v 
+```
+**На клієнті :**  
+
+**Вузол 2: pve99 (10.10.1.2):**  
+```
+[root@pve99 ~]$ rping -c -a 10.10.1.1 -v
+```
+***Побачимо приблизно такий вивід:***    
+```
+ping data: rdma-ping-54436: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST
+ping data: rdma-ping-54437: bcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTU
+ping data: rdma-ping-54438: cdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
+ping data: rdma-ping-54439: defghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW
+ping data: rdma-ping-54440: efghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX
+ping data: rdma-ping-54441: fghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
+ping data: rdma-ping-54442: ghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+ping data: rdma-ping-54443: hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[
+ping data: rdma-ping-54444: ijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[\
+ping data: rdma-ping-54445: jklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[\]
+ping data: rdma-ping-54446: klmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^
+^C
+[root@pve99 ~]$
+```
+***Все добре.***  
+### 4.2.3. На обох вузлах встановимо:   
+```
+apt install drbd-utils
+```
+```
+apt install build-essential flex bison libssl-dev libnl-3-dev libnl-genl-3-dev libxml2-dev xmlto xsltproc python3-pytest python3-sphinx python3-yaml python3-jinja2 dkms
+```
+***Обовязково зупиняємо службу***  
+```
+systemctl list-units | grep drbd
+drbdadm down all
+```
+
+
 
 
     
