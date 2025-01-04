@@ -13,7 +13,7 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-locale: "ru-RU"
+locale: "fr-FR"
 title: DevOp
 email: chateduard3@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
@@ -67,17 +67,17 @@ author:
       icon: "fas fa-fw fa-link"
       url: "https://e-schop.biz.ua/kickstart/"
     - label: "Linkedin"
-      icon: "fas fa-fw fa-linkedin"
+      icon: <i class="fa-brands fa-linkedin"></i>
       url: "https://www.linkedin.com/in/oleksandr-vidomenko-191295317/"
   #  - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
       url: "https://twitter.com/"
     - label: "GitHub"
-      icon: "fa-brands fa-github"
+      icon: "fab fa-fw fa-github"
       url: "https://github.com/fondurat-it"
   # - label: "Instagram"
-      icon: "fab fa-fw fa-instagram"
-      url: "https://instagram.com/"
+  #   icon: "fab fa-fw fa-instagram"
+  #   url: "https://instagram.com/"
 
 footer:
   links:
