@@ -205,9 +205,9 @@ parm:           strict_names:restrict resource and connection names to ascii aln
 [root@pve99 ~]$
 ```
 **Припишемо завантаження модулів в файл:**  
-`
-nano /etc/modules
-`
+
+`nano /etc/modules`  
+
 **Приклад файла:**  
 ```
 # /etc/modules: kernel modules to load at boot time.
@@ -239,6 +239,114 @@ drbd_transport_tcp
 
 ######################
 ```
+## 4.3. Налаштування DRBD пристроїв.
+**Є два вузла. У кожного вузла є диск: nvme0n1, до речі при завантаженні можлива зміна порядку: nvme0n1, nvme1n1…, якщо є декілька дисків, тому розглянемо випадок за міткою. Коли ми спарюємо диски, то краще мати їх ідентичні, ідентично розмічені.**   
+
+### 4.3.1. За допомогою fdisk  розмітимо спочатку перший таким чином:  
+```
+root@pve1:~# fdisk -l /dev/nvme0n1
+Disk /dev/nvme0n1: 476.94 GiB, 512110190592 bytes, 125026902 sectors
+Disk model: KINGSTON SKC3000S512G                   
+Units: sectors of 1 * 4096 = 4096 bytes
+Sector size (logical/physical): 4096 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disklabel type: gpt
+Disk identifier: A1F37274-73E6-864F-B0B6-9BDD551BBD45
+
+Device             Start       End  Sectors  Size Type
+/dev/nvme0n1p1      4096    266239   262144    1G Linux swap
+/dev/nvme0n1p2    266240  21237759 20971520   80G Linux filesystem
+/dev/nvme0n1p3 105123840 121901055 16777216   64G Linux filesystem
+/dev/nvme0n1p4 121901056 125026815  3125760 11.9G Linux swap
+/dev/nvme0n1p5  21237760  63180799 41943040  160G Linux filesystem
+/dev/nvme0n1p6  63180800 105123839 41943040  160G Linux filesystem
+
+Partition table entries are not in disk order.
+root@pve1:~#
+```
+**Збережемо розмітку диска в файл:**  
+
+`root@pve1:~# sfdisk -d /dev/nvme0n1 > nvmeKINGSTON512P6.dump`  
+
+**Він виглядатиме, приблизно так:**
+```
+root@pve1:~# cat nvmeKINGSTON512P6.dump
+label: gpt
+label-id: A1F37274-73E6-864F-B0B6-9BDD551BBD45
+device: /dev/nvme0n1
+unit: sectors
+first-lba: 256
+last-lba: 125026896
+sector-size: 4096  
+
+/dev/nvme0n1p1 : start=        4096, size=      262144, type=0657FD6D-A4AB-43C4-84E5-0933C84B4F4F, uuid=B21C1B97-64EE-6948-AA0F-0BBA8797EB91
+/dev/nvme0n1p2 : start=      266240, size=    20971520, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=8291281C-CA4C-0F4C-AD9E-C30C52FFBC04
+/dev/nvme0n1p3 : start=   105123840, size=    16777216, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=47A78E4D-FC8E-F54B-8DAF-D52A7908590C
+/dev/nvme0n1p4 : start=   121901056, size=     3125760, type=0657FD6D-A4AB-43C4-84E5-0933C84B4F4F, uuid=7F23E207-9E1A-1B42-962F-98BED3C1F479
+/dev/nvme0n1p5 : start=    21237760, size=    41943040, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=A00C2C46-01F3-1B48-9AB2-B458FDADC3D7
+/dev/nvme0n1p6 : start=    63180800, size=    41943040, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=207CEE45-7593-6441-9FAF-99E294452177
+root@pve1:~#
+```
+**Тепер на іншому вузлі зразу збережемо розмітку на диск, так будемо робити і при заміні диска, що зіпсувався:**  
+
+`sfdisk /dev/nvme0n1 < nvmeKINGSTON512P6.dump`  
+
+**Відповідно маємо:**  
+```
+[root@pve99 ~]$ fdisk -l /dev/nvme0n1
+Disk /dev/nvme0n1: 476.94 GiB, 512110190592 bytes, 125026902 sectors
+Disk model: KINGSTON SKC3000S512G                   
+Units: sectors of 1 * 4096 = 4096 bytes
+Sector size (logical/physical): 4096 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disklabel type: gpt
+Disk identifier: A1F37274-73E6-864F-B0B6-9BDD551BBD45
+
+Device             Start       End  Sectors  Size Type
+/dev/nvme0n1p1      4096    266239   262144    1G Linux swap
+/dev/nvme0n1p2    266240  21237759 20971520   80G Linux filesystem
+/dev/nvme0n1p3 105123840 121901055 16777216   64G Linux filesystem
+/dev/nvme0n1p4 121901056 125026815  3125760 11.9G Linux swap
+/dev/nvme0n1p5  21237760  63180799 41943040  160G Linux filesystem
+/dev/nvme0n1p6  63180800 105123839 41943040  160G Linux filesystem
+
+Partition table entries are not in disk order.
+[root@pve99 ~]$
+```
+**Також бачимо ідентичні мітки розділів диска, якими скористаємося далі:**  
+```
+[root@pve99 ~]$ blkid /dev/nvme0n1p5
+/dev/nvme0n1p5: UUID="6b33cc5a02d7cc72" TYPE="drbd" PARTUUID="a00c2c46-01f3-1b48-9ab2-b458fdadc3d7"
+[root@pve99 ~]$ blkid /dev/nvme0n1p6
+/dev/nvme0n1p6: UUID="f0eb844c4d858ddc" TYPE="drbd" PARTUUID="207cee45-7593-6441-9faf-99e294452177"
+[root@pve99 ~]$
+```
+### 4.3.2. Налаштування LVM фільтрів. Якщо ви будете використовувати lvm  для drbd пристроїв. ЦЕ ДУЖЕ ВАЖЛИВО! Щоб lvm працював поверх drbd пристрою  і не чіпав фізичних відповідних пристроїв, треба налаштувати файл /etc/lvm/lvm.conf .
+
+**Редагуємо на обох вузлах:**  
+
+`nano /etc/lvm/lvm.conf`  
+
+**Вигляд частини файла, зазвичай його кінець :**  
+```
+devices {
+     # added by pve-manager to avoid scanning ZFS zvols and Ceph rbds
+     filter=["r|/dev/zd.*|","r|/dev/rbd.*|",
+#"r|/dev/mapper/vg_drbd.*|",
+#"r|/dev/.*vg_drbd.*|",
+"r|.*a00c2c46-01f3-1b48-9ab2-b458fdadc3d7.*|",
+"r|.*207cee45-7593-6441-9faf-99e294452177.*|",
+"a|/dev/drbd.*|"]
+     global_filter=["r|/dev/zd.*|","r|/dev/rbd.*|",
+"r|.*a00c2c46-01f3-1b48-9ab2-b458fdadc3d7.*|",
+"r|.*207cee45-7593-6441-9faf-99e294452177.*|",
+"a|/dev/drbd.*|"]
+}
+```
+**ОБОВ’ЯЗКОВО!** Щоб застосувати, треба виконати команду на обох вузлах, опісля потребує перезавантаження:
+`update-initramfs -u`
+{: .notice--danger}
+
 
 
 
