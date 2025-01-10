@@ -1,11 +1,10 @@
 ---
-title: "Про один з способів реалізації RAID1 спільного сховища для кластера Proxmox з двох вузлів з їх дисків."
+title: "Post-notice"
 categories:
   - Blog
 tags:
-  - RAID1
-  - Proxmox
-  - DRBD
+  - Post
+  - notice
 ---
 # 3. Про один з способів реалізації RAID1 спільного сховища для кластера Proxmox з двох вузлів з їх дисків.
 
