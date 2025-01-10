@@ -346,6 +346,251 @@ devices {
 **ОБОВ’ЯЗКОВО!** Щоб застосувати, треба виконати команду на обох вузлах, опісля потребує перезавантаження:
 `update-initramfs -u`
 {: .notice--danger}
+### 4.3.3. Створюємо drbd пристрої: *`drbd0`* з фізичного пристрою: `nvme0n1p5 (а точніше з PARTUUID="a00c2c46-01f3-1b48-9ab2-b458fdadc3d7")`, *`drbd1`* з фізичного пристрою:  `/dev/nvme0n1p6 (PARTUUID="207cee45-7593-6441-9faf-99e294452177")`. Це робимо на обох вузлах(файли робимо на одному вузлі і копіюємо на інший вузол).
+`nano /etc/drbd.d/r0.res`  
+
+**Вигляд файлу:**
+```
+resource r0 {
+    protocol  C;
+#    device    /dev/drbd0 minor 0;
+#    meta-disk internal;
+    on pve1 {
+            address 10.10.2.1:7788;
+                volume 0 {
+                    device    /dev/drbd0 minor 0;
+                    disk /dev/disk/by-partuuid/a00c2c46-01f3-1b48-9ab2-b458fdadc3d7;
+                    #disk /dev/nvme0n1p5;
+                    meta-disk internal;
+                }
+    }
+    on pve99 {
+            address 10.10.2.2:7788;
+                volume 0 {
+                    device    /dev/drbd0 minor 0;
+                    disk /dev/disk/by-partuuid/a00c2c46-01f3-1b48-9ab2-b458fdadc3d7;
+                    #disk /dev/nvme0n1p5;
+                    meta-disk internal;
+                }
+    }
+    startup {
+        degr-wfc-timeout 60;
+        become-primary-on both;
+    }
+    disk {
+        on-io-error   detach;
+        c-plan-ahead  10;
+        c-fill-target 100K;
+        c-min-rate    500M;
+        c-max-rate    1000M;
+
+        no-disk-flushes;
+        no-disk-barrier;
+    }
+    net {
+        transport   rdma;
+        max-buffers 36k;
+        sndbuf-size 10M;
+        rcvbuf-size 10M;
+        allow-two-primaries;
+    }
+}
+```
+**Файл для другого ресурсу:**
+
+`nano /etc/drbd.d/r1.res`  
+
+**Вигляд файла:**
+```
+resource r1 {
+    protocol  C;
+#    device    /dev/drbd1 minor 1;
+#    meta-disk internal;
+    on pve1 {
+            address 10.10.2.1:7789;
+        volume 1 {
+            # device name
+            device /dev/drbd1  minor 1;
+            # specify disk to be used for devide above
+            disk /dev/disk/by-partuuid/207cee45-7593-6441-9faf-99e294452177;
+            #disk /dev/nvme0n1p6;
+            # where to create metadata
+            # specify the block device name when using a different disk
+            meta-disk internal;
+        }
+    }
+    on pve99 {
+             address 10.10.2.2:7789;
+        volume 1 {
+            device /dev/drbd1  minor 1;
+            disk /dev/disk/by-partuuid/207cee45-7593-6441-9faf-99e294452177;
+            #disk /dev/nvme0n1p6;
+            meta-disk internal;
+        }
+    }
+    startup {
+        degr-wfc-timeout 60;
+        become-primary-on both;
+    }
+    disk {
+        on-io-error   detach;
+        c-plan-ahead  10;
+        c-fill-target 100K;
+        c-min-rate    500M;
+        c-max-rate    1000M;
+
+        no-disk-flushes;
+        no-disk-barrier;
+    }
+    net {
+        transport   rdma;
+        max-buffers 36k;
+        sndbuf-size 10M;
+        rcvbuf-size 10M;
+        allow-two-primaries;
+    }
+}
+```
+### 4.3.4. Запускаємо службу та створюємо ресурси, ми робимо це на обох вузлах:
+```
+ # systemctl enable --now drbd
+
+# systemctl restart drbd
+# drbdadm create-md r{0,1}
+# drbdadm up r{0,1}
+```
+**Потім лише на одному вузлі ми встановлюємо ресурси в первинний стан і запускаємо початкову синхронізацію:**  
+```
+root@pve1:~# drbdadm primary --force r{0,1}
+```
+**Очікуємо на синхронізацію.**  
+
+**Робимо теж саме на другому вузлі.**  
+```
+root@pve99:~# drbdadm primary --force r{0,1}
+```
+**Перевіряємо:**  
+```
+[root@pve99 ~]$ drbdadm status
+
+r0 role:Primary
+  disk:UpToDate open:no
+  pve1 role:Primary
+    peer-disk:UpToDate
+
+r1 role:Primary
+  volume:1 disk:UpToDate open:no
+  pve1 role:Primary
+    volume:1 peer-disk:UpToDate
+
+[root@pve99 ~]$
+```
+### 4.3.5. Далі ми створюємо фізичні пристрої LVM DRBD на обох вузлах:
+```
+root@pve1:~# pvcreate /dev/drbd{0,1}
+  Physical volume "/dev/drbd0" successfully created
+  Physical volume "/dev/drbd1" successfully created
+ 
+root@ve99:~# pvcreate /dev/drbd{0,1}
+  Physical volume "/dev/drbd0" successfully created
+  Physical volume "/dev/drbd1" successfully created
+
+і створіть групи томів лише на одному з вузлів:
+root@pve1:~# vgcreate vg_drbd0 /dev/drbd0
+  Volume group "vg_drbd0" successfully created
+ 
+root@pve1:~# vgcreate vg_drbd1 /dev/drbd1
+  Volume group "vg_drbd1" successfully created
+```
+**Тепер групи можна побачити на обох вузлах завдяки реплікації DRBD:**
+```
+root@pve1:~# vgs
+  VG       #PV #LV #SN Attr   VSize    VFree  
+  os         1  17   0 wz--n- <465.76g  71.73g
+  pve        1   8   0 wz--n-  231.88g  16.00g
+  vg_drbd0   1   5   0 wz--n-  159.99g 106.99g
+  vg_drbd1   1   2   0 wz--n-  159.99g 147.99g
+root@pve1:~#
+```
+**Другий:**  
+```
+[root@pve99 ~]$ root@pve1:~pvs
+  PV         VG       Fmt  Attr PSize   PFree  
+  /dev/drbd0 vg_drbd0 lvm2 a--  159.99g 106.99g
+  /dev/drbd1 vg_drbd1 lvm2 a--  159.99g 147.99g
+  /dev/sda3  pve      lvm2 a--  <36.76g   4.50g
+[root@pve99 ~]$
+```
+### 4.3.6. Спільне сховище.  
+**Ми переходимо до веб-консолі адміністратора PVE і додаємо сховище LVM у Datacenter, вибираємо vg_drbd0 зі спадного списку та встановлюємо прапорці для активних і спільних. У розкривному списку *Вузли* ми вибираємо обидва вузли pve1 і pve2 і натискаємо *Додати*. Повторюємо те саме для vg_drbd1.**
+
+### 4.3.7. Створимо віртуальну машину з диском на спільному сховищі.  
+**Зробимо тест:**  
+```
+root@debvsan:/home/vov# fio --filename=/dev/sda1 --direct=1 --rw=read --bs=1m --size=20G --numjobs=200 --runtime=60 --group_reporting --name=file1 
+
+file1: (g=0): rw=read, bs=(R) 1024KiB-1024KiB, (W) 1024KiB-1024KiB, (T) 1024KiB-1024KiB, ioengine=psync, iodepth=1
+...
+fio-3.33
+Starting 200 processes
+Jobs: 200 (f=200): [R(200)][100.0%][r=1368MiB/s][r=1368 IOPS][eta 00m:00s]
+file1: (groupid=0, jobs=200): err= 0: pid=1092: Sun Dec 29 13:12:07 2024
+  read: IOPS=1367, BW=1368MiB/s (1434MB/s)(80.3GiB/60130msec)
+    clat (msec): min=2, max=1177, avg=145.78, stdev=97.77
+     lat (msec): min=2, max=1177, avg=145.78, stdev=97.77
+    clat percentiles (msec):
+     |  1.00th=[   30],  5.00th=[   52], 10.00th=[   73], 20.00th=[   94],
+     | 30.00th=[   97], 40.00th=[  103], 50.00th=[  113], 60.00th=[  131],
+     | 70.00th=[  153], 80.00th=[  188], 90.00th=[  253], 95.00th=[  330],
+     | 99.00th=[  514], 99.50th=[  592], 99.90th=[  936], 99.95th=[  995],
+     | 99.99th=[ 1150]
+   bw (  MiB/s): min=  399, max= 2673, per=100.00%, avg=1385.68, stdev= 2.71, samples=23547
+   iops        : min=  202, max= 2648, avg=1308.01, stdev= 2.75, samples=23547
+  lat (msec)   : 4=0.01%, 10=0.02%, 20=0.11%, 50=4.66%, 100=32.25%
+  lat (msec)   : 250=52.77%, 500=9.10%, 750=0.77%, 1000=0.28%, 2000=0.05%
+  cpu          : usr=0.00%, sys=0.04%, ctx=92967, majf=0, minf=53984
+  IO depths    : 1=100.0%, 2=0.0%, 4=0.0%, 8=0.0%, 16=0.0%, 32=0.0%, >=64=0.0%
+     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     issued rwts: total=82238,0,0,0 short=0,0,0,0 dropped=0,0,0,0
+     latency   : target=0, window=0, percentile=100.00%, depth=1
+
+Run status group 0 (all jobs):
+   READ: bw=1368MiB/s (1434MB/s), 1368MiB/s-1368MiB/s (1434MB/s-1434MB/s), io=80.3GiB (86.2GB), run=60130-60130msec
+
+Disk stats (read/write):
+  sda: ios=81909/617, merge=30/54, ticks=11925926/1508, in_queue=11927523, util=88.78%
+root@debvsan:/home/vov#
+```
+**Враховуючи те що це максимум на вузлі pve99 (pcie 2.0 x 4), результат хороший. Це максимум, що може надати диск на цьому вузлі.**
+
+**Зробимо переміщення диска віртуальної машини з одного сховища в інше.**  
+```
+root@pve1:~# qm move-disk 105 scsi0 vg_drbd0 
+
+create full clone of drive scsi0 (vg_drbd1:vm-105-disk-0)
+  Logical volume "vm-105-disk-2" created.
+drive mirror is starting for drive-scsi0
+drive-scsi0: transferred 6.0 MiB of 8.0 GiB (0.07%) in 0s
+drive-scsi0: transferred 1013.0 MiB of 8.0 GiB (12.37%) in 1s
+drive-scsi0: transferred 2.0 GiB of 8.0 GiB (24.40%) in 2s
+drive-scsi0: transferred 2.9 GiB of 8.0 GiB (36.51%) in 3s
+drive-scsi0: transferred 3.9 GiB of 8.0 GiB (48.63%) in 4s
+drive-scsi0: transferred 4.9 GiB of 8.0 GiB (60.84%) in 5s
+drive-scsi0: transferred 5.8 GiB of 8.0 GiB (72.97%) in 6s
+drive-scsi0: transferred 6.8 GiB of 8.0 GiB (84.95%) in 7s
+drive-scsi0: transferred 7.8 GiB of 8.0 GiB (97.08%) in 8s
+drive-scsi0: transferred 8.0 GiB of 8.0 GiB (100.00%) in 9s, ready
+all 'mirror' jobs are ready
+drive-scsi0: Completing block job...
+drive-scsi0: Completed successfully.
+drive-scsi0: mirror-job finished
+root@pve1:~#
+```
+
+
+
+
 
 
 
@@ -357,46 +602,5 @@ devices {
 
 
 ---
-Want to wrap several paragraphs or other elements in a notice? Using Liquid to capture the content and then filter it with `markdownify` is a good way to go.
+Далі буде
 ---
-```python
-root@pve1:~# pveversion 
-pve-manager/8.3.2/3e76eec21c4a14a7 (running kernel: 6.8.12-5-pve)
-[root@pve99 ~]$ pveversion
-pve-manager/8.3.2/3e76eec21c4a14a7 (running kernel: 6.8.12-5-pve)
-
-
-{% raw %}{% capture notice-2 %}
-#### New Site Features
-
-* You can now have cover images on blog pages
-* Drafts will now auto-save while writing
-{% endcapture %}{% endraw %}
-
-<div class="notice">{% raw %}{{ notice-2 | markdownify }}{% endraw %}</div>
-```
-
-{% capture notice-2 %}
-#### New Site Features
-
-* You can now have cover images on blog pages
-* Drafts will now auto-save while writing
-{% endcapture %}
-
-<div class="notice">
-  {{ notice-2 | markdownify }}
-</div>
-
-Or you could skip the capture and stick with straight HTML.
-
-```html
-<div class="notice">
-  <h4>Message</h4>
-  <p>A basic message.</p>
-</div>
-```
-
-<div class="notice">
-  <h4>Message</h4>
-  <p>A basic message.</p>
-</div>
