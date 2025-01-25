@@ -106,6 +106,7 @@ defaults:
       comments: true
       share: true
       related: true
+      enable_copy_code_button: true
   # _pages
   - scope:
       path: "_pages"
