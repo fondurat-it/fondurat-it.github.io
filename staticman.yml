@@ -1,0 +1,7 @@
+comments:
+  allowedFields: ["name", "email", "message"]
+  requiredFields: ["name", "message"]
+  branch: "main" # Ветка, в которую будут сохраняться комментарии
+  path: "_data/comments/{options.slug}" # Путь для сохранения комментариев
+  filename: "comment-{@timestamp}" # Имя файла для каждого комментария
+  format: "yaml" # Формат файла (может быть json или yaml)
