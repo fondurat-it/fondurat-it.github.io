@@ -1,0 +1,5 @@
+{
+  "githubToken": "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",
+  "rsaPrivateKey": "-----BEGIN RSA PRIVATE KEY-----SHA256:Sik/Vpc4TUFx8DMc14AoZ9lKvTeoeD2FP4GR25wDzA4=-----END RSA PRIVATE KEY-----",
+  "port": 80
+}
