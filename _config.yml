@@ -28,10 +28,10 @@ search: true
 # _config.yml (defaults)
 repository: "fondurat-it/fondurat-it.github.io"  # e.g. "mmistakes/minimal-mistakes"
 comments:
-  provider: "staticman_v2"
-  staticman:
-    branch: "main"
-    endpoint: "https://{comment-my v3 API}/v3/entry/github/"
+# provider: "staticman_v2"
+# staticman:
+#  branch: "main"
+#  endpoint: "https://{comment-my v3 API}/v3/entry/github/"
 
 # Build settings
 markdown: kramdown
