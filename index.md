@@ -5,8 +5,8 @@
 layout: single
 author_profile: tru
 
-layout: default
-comments: true
+# layout: default
+# comments: true
 # other options
 
 
